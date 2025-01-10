@@ -49,6 +49,10 @@ mit_controller_node: ##### SIMULATION
     adaptive_gait_sequencer:
       gait:
         disturbance_correction: 0.0
+
+    #simple_gait_sequencer: # Settings for simple gait sequencer
+    #  gait: "STAND" # Select a specific gait from gait database or "Manual"
+
     wbc:
       inverse_dynamics:
         foot_position_based_on_target_height: false

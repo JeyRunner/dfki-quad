@@ -280,6 +280,8 @@ target_include_directories(
 
 ament_python_install_package(${PROJECT_NAME})
 install(PROGRAMS scripts/joy_to_target.py DESTINATION lib/${PROJECT_NAME})
+install(PROGRAMS scripts/joy_fake_to_target.py DESTINATION lib/${PROJECT_NAME})
+install(PROGRAMS scripts/joy_tgui.py DESTINATION lib/${PROJECT_NAME})
 install(PROGRAMS scripts/quad_stand_up.py DESTINATION lib/${PROJECT_NAME})
 
 #########

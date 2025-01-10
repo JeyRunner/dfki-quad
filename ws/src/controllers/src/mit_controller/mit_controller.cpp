@@ -327,6 +327,10 @@ int main() {
                 << std::chrono::duration_cast<std::chrono::milliseconds>(toc_sc_out - tic_sc_out).count() << "[ms]"
                 << std::endl;
       sim.SetFootPositions(ft.positions);
+
+      // test: set manual cmd
+      // target.hybrid_x_dot = 0.2f;
+
       // Get command
       auto gp = sim.GetGamepad();
       if (gp.axes.size() == 4) {
