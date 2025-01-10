@@ -142,7 +142,8 @@ class Joy2Target(Node):
             NEW_GAIT_SEQUENCER = "Adaptive" """
         
 
-        if (NEW_GAIT_SEQUENCER not in {"", self.gait_sequencer}):
+        #if (NEW_GAIT_SEQUENCER not in {"", self.gait_sequencer}):
+        if NEW_GAIT_SEQUENCER != "":
             self.gait_sequencer = NEW_GAIT_SEQUENCER
             param_req = SetParameters.Request()
             param_req.parameters = [
@@ -152,7 +153,8 @@ class Joy2Target(Node):
             self.param_client.call_async(param_req)
 
 
-        if (NEW_GAIT != ""):
+        if NEW_GAIT != "":
+            self.gait_sequencer_gait = NEW_GAIT
             param_req = SetParameters.Request()
             if self.gait_sequencer == "Simple":
                 param_req.parameters = [
@@ -163,10 +165,11 @@ class Joy2Target(Node):
                 #         Parameter(name="gait_sequencer", value=self.gait_sequencer).to_parameter_msg()
                 #     )
             elif self.gait_sequencer == "Adaptive":
-                self.gait_sequencer_gait = NEW_GAIT
+                
                 if NEW_GAIT == "STAND":
                     # self.gait_sequencer = "Simple"
                     assert self.gait_sequencer == "Simple"
+                    assert False
                     param_req.parameters = [
                         Parameter(name='simple_gait_sequencer.gait', value=NEW_GAIT).to_parameter_msg(),
                         Parameter(name="gait_sequencer", value=self.gait_sequencer).to_parameter_msg(),
@@ -271,7 +274,9 @@ class App(App):
         #self.ros_task = asyncio.create_task(asyncio.to_thread(self.ros_task))
 
     def on_ready(self) -> None:
-        self.query_one(Log)
+        from threading import Timer
+        self.joy2ee_node.send_update_gait(NEW_GAIT="STAND", NEW_GAIT_SEQUENCER="Simple")
+        Timer(0.1, self.reset_cmd).start()
 
     def on_key(self, event: Key):
         # self.title = event.key
@@ -299,28 +304,33 @@ class App(App):
         self.title = str(event.value)
         value = str(event.value)
 
+        changed = False
         match event.control.name:
             case "gait_sequencer":
-                NEW_GAIT = ""
-                if value == "Adaptive":
-                    NEW_GAIT = "STATIC_WALK"
-                else:
-                    NEW_GAIT = "STAND"
-                self.query_one("#gait_sequencer_gait", Select).value = NEW_GAIT
-                self.joy2ee_node.send_update_gait(NEW_GAIT=NEW_GAIT,  NEW_GAIT_SEQUENCER=value)
-                #self.joy2ee_node.gait_sequencer = str(event.value)
+                if self.joy2ee_node.gait_sequencer != value:
+                    NEW_GAIT = ""
+                    if value == "Adaptive":
+                        NEW_GAIT = "STATIC_WALK"
+                    else:
+                        NEW_GAIT = "STAND"
+                    self.query_one("#gait_sequencer_gait", Select).value = NEW_GAIT
+                    self.joy2ee_node.send_update_gait(NEW_GAIT=NEW_GAIT,  NEW_GAIT_SEQUENCER=value)
+                    #self.joy2ee_node.gait_sequencer = str(event.value)
+                    changed = True
 
             case "gait_sequencer.gait":
-                #self.joy2ee_node.gait_sequencer_gait = str(event.value)
-                NEW_GAIT_SEQUENCER = ""
-                if value == "STAND":
-                    NEW_GAIT_SEQUENCER = "Simple"
-                    self.query_one("#gait_sequencer", Select).value = NEW_GAIT_SEQUENCER
-                self.joy2ee_node.send_update_gait(NEW_GAIT=value, NEW_GAIT_SEQUENCER=NEW_GAIT_SEQUENCER)
+                if self.joy2ee_node.gait_sequencer_gait != value:
+                    #self.joy2ee_node.gait_sequencer_gait = str(event.value)
+                    NEW_GAIT_SEQUENCER = ""
+                    if value == "STAND":
+                        NEW_GAIT_SEQUENCER = "Simple"
+                        self.query_one("#gait_sequencer", Select).value = NEW_GAIT_SEQUENCER
+                    self.joy2ee_node.send_update_gait(NEW_GAIT=value, NEW_GAIT_SEQUENCER=NEW_GAIT_SEQUENCER)
+                    changed = True
 
-        self.log_msg(f"gait_sequencer: {self.joy2ee_node.gait_sequencer}, gait_sequencer.gait: {self.joy2ee_node.gait_sequencer_gait}")
-        self.joy2ee_node.send_walk_dir_cmd()
-        #self.joy2ee_node.send_update()
+        if changed:
+            self.log_msg(f"gait_sequencer: {self.joy2ee_node.gait_sequencer}, gait_sequencer.gait: {self.joy2ee_node.gait_sequencer_gait}")
+            self.joy2ee_node.send_walk_dir_cmd()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         match event.button.name:
