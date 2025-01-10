@@ -1,6 +1,7 @@
 #!/bin/bash
 
 touch -a /home/$USER/.ros_docker_bash_history
+touch -a /home/$USER/.ros_docker_zsh_history
 
 # check, if a container with dfki_quad label is already there
 container_id=$(docker ps -aq --filter "label=dfki_quad")
@@ -16,6 +17,7 @@ if [[ $container_id = "" ]]; then
         --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
         --volume="${PWD}/ws/src:/root/ros2_ws/src" \
         --volume="/home/$USER/.ros_docker_bash_history:/root/.bash_history" \
+        --volume="/home/$USER/.ros_docker_zsh_history:/root/.zsh_history" \
 	--device="/dev/input:/dev/input" \
 	--device="/dev/ttyACM0:/dev/ttyACM0" \
 	--privileged)

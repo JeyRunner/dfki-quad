@@ -23,7 +23,7 @@ RUN apt-get install -y \
 RUN echo "ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true" | debconf-set-selections
 
 ARG HW_ARCH
-ARG GO2_NETWORK_INTERFACE
+
 
 # install drake - drake_setup.sh determines the underlying hardware architecture
 WORKDIR /root
@@ -101,17 +101,17 @@ WORKDIR /root/unitree_ros2/
 # RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build --cmake-args -DBUILD_DDSPERF=NO"
 RUN sed -i '$ d' /root/unitree_ros2/example/src/CMakeLists.txt # remove last line
 RUN echo " add_library(common src/common/motor_crc.cpp src/common/ros2_sport_client.cpp) \n \
-           ament_target_dependencies(common PUBLIC unitree_go unitree_api rclcpp) \n \
-           ament_export_targets(common HAS_LIBRARY_TARGET) \n \
-           install(DIRECTORY include/ DESTINATION include) \n \
-           install( \n \
-           TARGETS common \n \
-           EXPORT common \n \
-           LIBRARY DESTINATION lib \n \
-           ARCHIVE DESTINATION lib \n \
-           RUNTIME DESTINATION bin \n \
-           INCLUDES DESTINATION include) \n \
-           ament_package()" >> /root/unitree_ros2/example/src/CMakeLists.txt
+    ament_target_dependencies(common PUBLIC unitree_go unitree_api rclcpp) \n \
+    ament_export_targets(common HAS_LIBRARY_TARGET) \n \
+    install(DIRECTORY include/ DESTINATION include) \n \
+    install( \n \
+    TARGETS common \n \
+    EXPORT common \n \
+    LIBRARY DESTINATION lib \n \
+    ARCHIVE DESTINATION lib \n \
+    RUNTIME DESTINATION bin \n \
+    INCLUDES DESTINATION include) \n \
+    ament_package()" >> /root/unitree_ros2/example/src/CMakeLists.txt
 RUN /bin/bash -c "source /opt/ros/humble/setup.bash && colcon build" # replace last line to install needed functions
 
 # install matplot++ \
@@ -141,14 +141,22 @@ RUN ldconfig
 # Install NMEA GPS driver
 RUN apt-get update && apt-get -y install ros-humble-nmea-navsat-driver && pip3 install transforms3d
 
+RUN apt-get -y install libglfw3-dev ros-humble-rqt*
+RUN apt-get -y install clang-format clang-tidy
+RUN pip install --user ensurepath black
+
 RUN echo 'source /root/ros2_ws/install/setup.bash' >> ~/.bashrc
 RUN echo 'source /root/unitree_ros2/install/setup.bash' >> ~/.bashrc
+
+
 
 # Install Vicon driver
 #WORKDIR /root
 #RUN git clone https://github.com/CatInTheRain/ros2-vicon-receiver && cd ros2-vicon-receiver && git switch humble && ./install_libs.sh
 #RUN /bin/bash -c "source /opt/ros/humble/setup.bash && cd ros2-vicon-receiver/vicon_receiver && colcon build --symlink-install "
 #RUN echo 'source /root/ros2-vicon-receiver/vicon_receiver/install/setup.bash' >> ~/.bashrc
+
+ARG GO2_NETWORK_INTERFACE
 
 # create environments for both robots
 WORKDIR /root
@@ -168,7 +176,41 @@ RUN echo 'alias cbr="colcon build --symlink-install --cmake-args -DROBOT_NAME=ul
 RUN echo 'alias cbg="colcon build --symlink-install --cmake-args -DROBOT_NAME=go2"' >> ~/.bashrc
 RUN echo 'alias cbg_onboard="colcon build --symlink-install --cmake-args -DROBOT_NAME=go2 -DWITHOUT_DRAKE=ON -DWITH_VICON=OFF && sg"' >> ~/.bashrc
 
+
+
+# zsh
+# Default powerline10k theme, no plugins installed
+RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.2.1/zsh-in-docker.sh)" -- \
+    -p git \
+    -p https://github.com/zsh-users/zsh-autosuggestions \
+    -p https://github.com/zsh-users/zsh-completions
+
+RUN touch setup_go2_workspace.zsh
+RUN echo '. /root/ros2_ws/install/setup.zsh' >> setup_go2_workspace.zsh
+#RUN echo 'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' >> setup_go2_workspace.zsh
+
+# build argument can be exchanged during build with --build-arg GO2_NETWORK_INTERFACE=<network_name>
+RUN echo "export CYCLONEDDS_URI='<CycloneDDS><Domain><General><Interfaces><NetworkInterface name=\"$GO2_NETWORK_INTERFACE\" priority=\"default\" multicast=\"default\" /></Interfaces></General></Domain></CycloneDDS>'" >> setup_go2_workspace.zsh
+#Add ROS_DOMAIN_ID same as hardware
+RUN echo 'export ROS_DOMAIN_ID=0' >> setup_go2_workspace.zsh
+
+RUN echo 'source /root/ros2_ws/install/setup.zsh' >> ~/.zshrc
+RUN echo 'source /root/unitree_ros2/install/setup.zsh' >> ~/.zshrc
+#RUN echo 'export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp' >> ~/.zshrc
+RUN echo 'export RMW_IMPLEMENTATION=rmw_fastrtps_cpp' >> ~/.zshrc
+
+RUN echo 'alias sr="source /root/setup_ulab_workspace.bash"' >> ~/.zshrc
+RUN echo 'alias sg="source /root/setup_go2_workspace.zsh"' >> ~/.zshrc
+RUN echo 'alias cbr="colcon build --symlink-install --cmake-args -DROBOT_NAME=ulab"' >> ~/.zshrc
+RUN echo 'alias cbg="colcon build --symlink-install --cmake-args -DROBOT_NAME=go2  -DWITH_VICON=OFF"' >> ~/.zshrc
+RUN echo 'alias cbg_onboard="colcon build --symlink-install --cmake-args -DROBOT_NAME=go2 -DWITHOUT_DRAKE=ON -DWITH_VICON=OFF && sg"' >> ~/.zshrc
+
+
+
+
 RUN export ROS_DOMAIN_ID=24
+
+CMD [ "/bin/zsh" ]
 
 # default workdir
 WORKDIR /root/ros2_ws

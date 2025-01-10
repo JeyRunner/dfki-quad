@@ -6,7 +6,7 @@ echo "After that, a new image will be build."
 echo "Press ENTER, if you want to continue:"
 
 read -s -n 1 key
-if [[ $key != "" ]]; then 
+if [[ $key != "" ]]; then
 	echo "Aborted."
 	exit 0
 fi
@@ -24,7 +24,10 @@ hw_arch=$(uname -i)
 
 if [[ $hw_arch == "x86_64" ]]; then
   arch_build_arg=$hw_arch
-  network_interface="enp0s31f6"
+  # get default network interface
+  network_interface=$(ip -o -4 route show to default | awk '{print $5}')
+  echo "> set GO2_NETWORK_INTERFACE to $network_interface"
+  #network_interface="enp39s0" #"enp0s31f6"
 elif [[ $hw_arch == "aarch64" ]]; then
   arch_build_arg=$hw_arch
   network_interface="eth0"

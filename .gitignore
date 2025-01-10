@@ -114,3 +114,6 @@ ws/src/common/cmake_commands.sh
 ws/src/state_estimation/cmake_commands.sh
 
 ws/force_contact.xml
+
+
+**/cmake-build*/
