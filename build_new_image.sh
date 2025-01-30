@@ -26,6 +26,8 @@ if [[ $hw_arch == "x86_64" ]]; then
   arch_build_arg=$hw_arch
   # get default network interface
   network_interface=$(ip -o -4 route show to default | awk '{print $5}')
+   // you may have to manually set the interface to the one go2 is connected to:
+   // network_interface="eth0"
   echo "> set GO2_NETWORK_INTERFACE to $network_interface"
   #network_interface="enp39s0" #"enp0s31f6"
 elif [[ $hw_arch == "aarch64" ]]; then

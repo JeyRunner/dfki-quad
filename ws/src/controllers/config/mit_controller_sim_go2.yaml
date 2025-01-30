@@ -2,6 +2,7 @@ mit_controller_node: ##### SIMULATION
   ros__parameters:
     use_sim_time: True
     initial_height: 0.30
+    # sees to define the output type send to the leg controller: 0=JOINT_CONTROL
     leg_control_mode: 0 # 0: wbc; 3: ikin
     joint_control_gains: # wbc
       swing_Kp: [ 0.0, 0.0, 0.0 ]

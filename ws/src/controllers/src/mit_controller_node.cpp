@@ -748,7 +748,10 @@ void MITController::QuadControlTargetUpdateCallback(interfaces::msg::QuadControl
   gs_->UpdateTarget(target_);
 }
 
+
 void MITController::MPCLoopCallback() {
+  /// Main MPC Loop
+
   // Get gait sequence and update other parts
   static GaitSequence gait_sequence_temp;
   static WrenchSequence ws_temp;
@@ -1168,6 +1171,7 @@ void MITController::ControlLoopCallback() {
     }
   }
 
+  /// run wbc and send joint command to leg_driver
   wbc_->UpdateFeetTarget(feet_targets);
   wbc_->UpdateFootContact(gait);
   wbc_->UpdateWrenches(wrenches);
@@ -1262,6 +1266,8 @@ void MITController::ControlLoopCallback() {
 }
 
 void MITController::SLCLoopCallback() {
+  /// SwingLegController
+
   static QuadState quad_state_temp;
   static GaitSequence gs_tmp;
   static std::array<double, ModelInterface::N_LEGS> feet_swing_progress_temp;
